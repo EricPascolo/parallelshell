@@ -9,45 +9,32 @@ export nodes_total="${nodes_knl},${nodes_bwd},${nodes_skl}"
 
 #!/bin/bash
 function pshell {
-
-for i in $(echo $1 | tr ',' '\n'); do echo $i; ssh $i "${2}"; done
+## interactive parallel shell
+for i in $(echo $1 | tr ',' '\n'); do echo "-------------------------"$i; ssh $i "${2}"; done
 
 }
 
 
 function psub_shell {
-
-remote_cmd="nohup ${2}  < /dev/null > /dev/null 2&>1 &"
+## submitting parallel shell
+remote_cmd=" ${3} nohup ${2}   < /dev/null > /dev/null 2>&1 &"
 echo $remote_cmd
-for i in $(echo $1 | tr ',' '\n'); do echo $i; ssh $i $remote_cmd; done
+for i in $(echo $1 | tr ',' '\n'); do echo "-------------------------"$i; ssh $i $remote_cmd; done
 
 }
 
 
-function get_nodes_by_queue {
+function pbs_get_nodes_by_queue {
+## return node list given queue name
+## take two input argument:
+##    - name of variable to store the nodelist
+##    - name of queue
+##
 
+PSHELLDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
 pbsnodes -a -Fjson > pbsout.json
-python -<< EOF "$1"
-
-import sys
-import json
-import os
-filecontained = ''
-try:
-    if os.path.isfile("pbsout.json"):
-        filecontained = json.loads(open("pbsout.json").read())
-    else:
-        sys.exit()
-except:
-    pass
-print filecontained["nodes"]
-
-EOF
-
+export "$1"=$(python $PSHELLDIR/pbs_analyzer.py $2)
 rm pbsout.json
 
-#nodes_array=($(pbsnodes -a | grep -a12 $1 | grep  -E '((r[0-9]{1,}c[0-9]{1,}s[0-9]{1,}(-hfi)?))\n'))
-#export nodes=${nodes_array[0]}
-#for x in ${nodes_array[@]:1}; do nodes=$nodes,$x; done;
 
 }
