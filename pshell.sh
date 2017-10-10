@@ -4,7 +4,8 @@
 ##
 ## author : eric pascolo
 ##
-
+export PSHELLDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
+echo "PSHELL LOADED FROM " $PSHELLDIR
 
 function pshell {
 ## interactive parallel shell
@@ -29,7 +30,6 @@ function pbs_get_nodes_by_queue {
 ##    - name of queue
 ##
 
-PSHELLDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
 pbsnodes -a -Fjson > pbsout.json
 export "$1"=$(python $PSHELLDIR/pbs_analyzer.py --queue $2)
 rm pbsout.json
@@ -44,7 +44,6 @@ function pbs_get_nodes_by_job {
 ##    - name of job
 ##
 
-PSHELLDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
 pbsnodes -a -Fjson > pbsout.json
 export "$1"=$(python $PSHELLDIR/pbs_analyzer.py --job $2)
 rm pbsout.json
