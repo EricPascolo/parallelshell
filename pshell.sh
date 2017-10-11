@@ -29,8 +29,12 @@ function pbs_get_nodes_by_queue {
 ##    - name of variable to store the nodelist
 ##    - name of queue
 ##
+if [ $# -eq 3 ];then
+  pbsnodes -a -Fjson -s $3 > pbsout.json
+else
+  pbsnodes -a -Fjson > pbsout.json
+fi
 
-pbsnodes -a -Fjson > pbsout.json
 export "$1"=$(python $PSHELLDIR/pbs_analyzer.py --queue $2)
 rm pbsout.json
 
@@ -43,8 +47,12 @@ function pbs_get_nodes_by_job {
 ##    - name of variable to store the nodelist
 ##    - name of job
 ##
+if [ $# -eq 3 ];then
+  pbsnodes -a -Fjson -s $3 > pbsout.json
+else
+  pbsnodes -a -Fjson > pbsout.json
+fi
 
-pbsnodes -a -Fjson > pbsout.json
 export "$1"=$(python $PSHELLDIR/pbs_analyzer.py --job $2)
 rm pbsout.json
 
