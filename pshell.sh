@@ -1,9 +1,11 @@
 #!/bin/bash
 
-## PARALLEL SHELL software
+## PARALLEL SHELL software and scheduler utilities
 ##
 ## author : eric pascolo
 ##
+
+#############################################################################SSH
 export PSHELLDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
 echo "PSHELL LOADED FROM " $PSHELLDIR
 
@@ -22,6 +24,7 @@ for i in $(echo $1 | tr ',' '\n'); do echo "-------------------------"$i; ssh $i
 
 }
 
+#############################################################################PBS
 
 function pbs_get_nodes_by_queue {
 ## return node list given queue name
@@ -58,13 +61,42 @@ rm pbsout.json
 
 }
 
+###########################################################################SLURM
 
+function srun_submit_command_on_multiple_allocated_nodes {
+# submit in slurm nodes allocated the same command
+# The subjob is the same for each node.
+# Take one arg:
+#     - command to submit to each node
+#
+echo 'Running multi run test'
+myhostnames=$(scontrol show hostname)
+export myhostnames=$(echo $myhostnames)
+date
+for node in $myhostnames
+do
+  date
+  echo 'Submitting job for node '$node
+  echo "1srun -w $node $1 &"
+done
+date
+echo 'Waiting for job to finish'
+wait
+echo 'Jobs finished'
+date
 
-function load_cineca_test_nodes_list {
-export nodes_knl=r113c15s01-hfi,r113c15s02-hfi,r113c15s03-hfi,r113c15s04-hfi,r113c16s01-hfi,r113c16s02-hfi,r113c16s03-hfi,r113c16s04-hfi,r113c17s01-hfi,r113c17s02-hfi,r113c17s03-hfi,r113c17s04-hfi,r113c18s01-hfi,r113c18s02-hfi,r114c15s01-hfi,r114c15s02-hfi,r114c15s03-hfi,r114c15s04-hfi,r114c16s01-hfi,r114c16s02-hfi,r114c16s03-hfi,r114c16s04-hfi,r114c17s01-hfi,r114c17s02-hfi,r114c17s03-hfi,r114c17s04-hfi,r114c18s01-hfi,r114c18s02-hfi
+}
 
-export nodes_skl=r149c12s01-hfi,r149c12s02-hfi,r149c12s03-hfi,r149c12s04-hfi,r149c13s01-hfi,r149c13s02-hfi,r149c13s03-hfi,r149c13s04-hfi
-export nodes_bdw=r044c03s03,r044c03s04
-export nodes_total="${nodes_knl},${nodes_bwd},${nodes_skl}"
+function slurm_get_nodes_names {
+## return list of reserved nodes in current slurm job
+## the difference with $SLURM_JOB_NODELIST environment
+## variable is that the node names are not grouped
+## $SLURM_JOB_NODELIST -> r06c01s[1,2]
+## slurm_get_nodes_names -> r06c01s01,r06c01s02
+## take one input argument:
+##    - name of variable to store the nodelist
+##
+myhostnames=$(scontrol show hostname)
+export "$1"=$(echo $myhostnames | tr ' ' ',')
 
 }
